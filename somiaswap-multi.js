@@ -83,7 +83,7 @@ async function reportTx(addr) {
 
 async function swapSttTo(wallet, targetToken, path) {
   const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
-  const amount = getRandom(0.01, 0.05);
+  const amount = getRandom(0.001, 0.005);
   const amountIn = ethers.parseEther(amount.toString());
   const amountOutMin = await getAmountOut(amountIn, path);
   const minOut = amountOutMin * 95n / 100n;
