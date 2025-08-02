@@ -16,9 +16,7 @@ Supports multiple wallets and runs in an infinite loop without manual input.
 * 🕒 Random delay between swaps (30–60 seconds)
 * ✅ Automatic token approval
 * ✨ Slippage protection (5%)
-* 📱 Auto-report to Somnia API for points
-* 🫠 Headless CLI (no UI, terminal only)
-* 🌈 Color-coded logs in terminal
+
 
 ---
 
