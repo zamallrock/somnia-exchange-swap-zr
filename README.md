@@ -1,4 +1,4 @@
-# 🤖 Somnia Auto Swap Bot (Multi Wallet, Infinite Loop)
+# 🤖 Somnia exchange Auto Swap Bot (Multi Wallet, Infinite Loop)
 
 An automated bot for farming points on Somnia Testnet by continuously swapping between `STT ⇄ USDTg` and `STT ⇄ NIA`.
 Supports multiple wallets and runs in an infinite loop without manual input.
