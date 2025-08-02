@@ -63,7 +63,7 @@ somnia-exchange-zr/
 ## 🚀 Running the Bot
 
 ```bash
-npm start
+node somiaswap-multi.js
 ```
 
 The bot will:
