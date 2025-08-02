@@ -1,14 +1,11 @@
-import "dotenv/config";
 import { ethers } from "ethers";
 import fs from "fs";
 import fetch from "node-fetch";
 
-const RPC_URL = process.env.RPC_URL_SOMNIA_TESTNET;
-const USDTG_ADDRESS = process.env.USDTG_ADDRESS;
-const NIA_ADDRESS = process.env.NIA_ADDRESS;
-const ROUTER_ADDRESS = "0xb98c15a0dC1e271132e341250703c7e94c059e8D";
-const WSTT_ADDRESS = "0xf22ef0085f6511f70b01a68f360dcc56261f768a";
-
+const config = JSON.parse(fs.readFileSync("config.json"));
+const RPC_URL = config.rpc;
+const USDTG_ADDRESS = config.usdtg;
+const NIA_ADDRESS = config.nia;
 const ERC20_ABI = [
   "function decimals() view returns (uint8)",
   "function balanceOf(address owner) view returns (uint256)",
