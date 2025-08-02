@@ -1,1 +1,4 @@
-
+[
+  { "name": "wallet1", "privateKey": "0x..." },
+  { "name": "wallet2", "privateKey": "0x..." }
+]
