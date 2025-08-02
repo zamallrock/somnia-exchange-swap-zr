@@ -1,0 +1,17 @@
+{
+  "name": "somiaswap-multi",
+  "version": "1.0.0",
+  "description": "Somnia auto-swap bot multi wallet & infinite loop",
+  "type": "module",
+  "main": "somiaswap-multi.js",
+  "scripts": {
+    "start": "node somiaswap-multi.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ethers": "^6.7.0",
+    "node-fetch": "^3.3.2"
+  },
+  "author": "zamallrock",
+  "license": "MIT"
+}
