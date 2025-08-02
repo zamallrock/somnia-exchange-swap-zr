@@ -39,7 +39,8 @@ somnia-exchange-zr/
 1. Enter your project folder:
 
    ```bash
-   cd somnia-exchange-zr
+   git clone https://github.com/zamallrock/somnia-exchange-swap-zr.git
+   cd somnia-exchange-swap-zr
    ```
 
 2. Install dependencies:
