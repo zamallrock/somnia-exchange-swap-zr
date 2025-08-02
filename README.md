@@ -25,9 +25,9 @@ Supports multiple wallets and runs in an infinite loop without manual input.
 ```
 somnia-exchange-zr/
 ├── somiaswap-multi.js       # Main bot script
-├── .env                     # RPC & token config
-├── wallets.json             # Wallet list
-├── package.json             # Dependencies + ESM mode
+├── config.json              # RPC & token config
+├── wallets.json             # Wallet & privatekeys list
+├── package.json             # Dependencie
 ```
 
 ---
