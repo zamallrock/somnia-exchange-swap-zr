@@ -2,10 +2,14 @@ import { ethers } from "ethers";
 import fs from "fs";
 import fetch from "node-fetch";
 
+// Load config.json
 const config = JSON.parse(fs.readFileSync("config.json"));
 const RPC_URL = config.rpc;
 const USDTG_ADDRESS = config.usdtg;
 const NIA_ADDRESS = config.nia;
+const WSTT_ADDRESS = config.wstt;
+const ROUTER_ADDRESS = "0xb98c15a0dC1e271132e341250703c7e94c059e8D";
+
 const ERC20_ABI = [
   "function decimals() view returns (uint8)",
   "function balanceOf(address owner) view returns (uint256)",
@@ -83,7 +87,7 @@ async function swapSttTo(wallet, targetToken, path) {
   const amountIn = ethers.parseEther(amount.toString());
   const amountOutMin = await getAmountOut(amountIn, path);
   const minOut = amountOutMin * 95n / 100n;
-  const deadline = Math.floor(Date.now() / 1000) + 60 * 10;
+  const deadline = Math.floor(Date.now() / 1000) + 600;
   log(`Swapping ${amount} STT ➜ ${targetToken} for ${wallet.address.slice(0, 6)}...`, "info");
   try {
     const tx = await router.swapExactETHForTokens(minOut, path, wallet.address, deadline, { value: amountIn });
@@ -109,7 +113,7 @@ async function swapToStt(wallet, tokenAddr, path, rangeMin, rangeMax, symbol) {
   const amountOutMin = await getAmountOut(amountIn, path);
   const minOut = amountOutMin * 95n / 100n;
   const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
-  const deadline = Math.floor(Date.now() / 1000) + 60 * 10;
+  const deadline = Math.floor(Date.now() / 1000) + 600;
   log(`Swapping ${amount} ${symbol} ➜ STT for ${wallet.address.slice(0, 6)}...`, "info");
   try {
     const tx = await router.swapExactTokensForETH(amountIn, minOut, path, wallet.address, deadline);
