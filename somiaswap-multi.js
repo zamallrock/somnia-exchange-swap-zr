@@ -2,9 +2,8 @@ import { ethers } from "ethers";
 import fs from "fs";
 import fetch from "node-fetch";
 
-console.log("\n✪ ZAMALLROCK | SOMNIA EXCHANGE AUTO BOT ✪\n");
+console.log("\n✪ ZAMALLROCK | SOMNIA EXCHANGE AUTO BOT ✪\n"); 
 
-// Load config.json
 const config = JSON.parse(fs.readFileSync("config.json"));
 const RPC_URL = config.rpc;
 const USDTG_ADDRESS = config.usdtg;
@@ -25,7 +24,7 @@ const ROUTER_ABI = [
   "function getAmountsOut(uint amountIn, address[] path) view returns (uint[] memory)"
 ];
 
-const provider = new ethers.JsonRpcProvider(RPC_URL);
+const provider = new ethers.JsonRpcProvider(RPC_URL, { staticNetwork: null, timeout: 30000 });
 const wallets = JSON.parse(fs.readFileSync("wallets.json"));
 
 function log(msg, type = "info") {
@@ -74,6 +73,12 @@ async function reportTx(addr) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ address: addr, taskId: "make-swap" })
     });
+
+    if (!res.ok) {
+      log(`Report failed: HTTP ${res.status}`, "warn");
+      return;
+    }
+
     const data = await res.json();
     if (data.success) {
       log(`Reported: +${data.data.task.actualPointsAwarded} points`, "success");
@@ -85,7 +90,7 @@ async function reportTx(addr) {
 
 async function swapSttTo(wallet, targetToken, path) {
   const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
-  const amount = getRandom(0.001, 0.005);
+  const amount = getRandom(0.01, 0.05);
   const amountIn = ethers.parseEther(amount.toString());
   const amountOutMin = await getAmountOut(amountIn, path);
   const minOut = amountOutMin * 95n / 100n;
