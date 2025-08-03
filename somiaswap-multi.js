@@ -82,14 +82,13 @@ async function reportTx(addr) {
 
     const data = await res.json();
     if (data.success) {
-      log(`Reported: +${data.data.task.actualPointsAwarded} points`, "success");
+      const awarded = data.data.task.actualPointsAwarded;
+      const total = data.data.totalPoints;
 
-      // Rekap poin
-      const walletAddr = addr.toLowerCase();
-      if (!pointsPerWallet[walletAddr]) {
-        pointsPerWallet[walletAddr] = 0;
-      }
-      pointsPerWallet[walletAddr] += data.data.task.actualPointsAwarded;
+      log(`Reported: +${awarded} points → Dashboard Total: ${total}`, "success");
+
+      const lowerAddr = addr.toLowerCase();
+      pointsPerWallet[lowerAddr] = total; // Simpan dari dashboard
     }
   } catch (e) {
     log(`Report failed: ${e.message}`, "warn");
@@ -140,14 +139,6 @@ async function swapToStt(wallet, tokenAddr, path, rangeMin, rangeMax, symbol) {
   }
 }
 
-function printTotalPoints() {
-  console.log("\n📊 Total Points Recap:");
-  for (const [wallet, points] of Object.entries(pointsPerWallet)) {
-    console.log(`→ ${wallet} : ${points} points`);
-  }
-  console.log("────────────────────────────────────────────");
-}
-
 async function run() {
   while (true) {
     for (const entry of wallets) {
@@ -163,9 +154,13 @@ async function run() {
       await delay(getRandom(30000, 60000));
       await swapToStt(wallet, NIA_ADDRESS, [NIA_ADDRESS, WSTT_ADDRESS], 2, 10, "NIA");
       await delay(getRandom(30000, 60000));
-    }
 
-    printTotalPoints();
+      // Rekap poin dari dashboard
+      const addr = wallet.address.toLowerCase();
+      const total = pointsPerWallet[addr] || 0;
+      console.log(`\n📊 Total points for ${entry.name} (${addr}): ${total} points`);
+      console.log("────────────────────────────────────────────");
+    }
   }
 }
 
