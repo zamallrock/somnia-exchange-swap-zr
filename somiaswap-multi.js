@@ -46,19 +46,23 @@ function getRandom(min, max, fixed = 3) {
 }
 
 async function approveIfNeeded(wallet, tokenAddr, amount) {
-  const contract = new ethers.Contract(tokenAddr, ERC20_ABI, wallet);
-  const allowance = await contract.allowance(wallet.address, ROUTER_ADDRESS);
-  const decimals = await contract.decimals();
-  const amountParsed = ethers.parseUnits(amount.toString(), decimals);
-  if (allowance >= amountParsed) return;
-  const tx = await contract.approve(ROUTER_ADDRESS, ethers.MaxUint256);
-  await tx.wait();
-  log(`Approved token ${tokenAddr.slice(0,6)}... for ${wallet.address.slice(0,6)}...`, "success");
+  try {
+    const contract = new ethers.Contract(tokenAddr, ERC20_ABI, wallet);
+    const allowance = await contract.allowance(wallet.address, ROUTER_ADDRESS);
+    const decimals = await contract.decimals();
+    const amountParsed = ethers.parseUnits(amount.toString(), decimals);
+    if (allowance >= amountParsed) return;
+    const tx = await contract.approve(ROUTER_ADDRESS, ethers.MaxUint256);
+    await tx.wait();
+    log(`Approved token ${tokenAddr.slice(0,6)}... for ${wallet.address.slice(0,6)}...`, "success");
+  } catch (e) {
+    log(`Approval failed: ${e.message}`, "error");
+  }
 }
 
 async function getAmountOut(amountIn, path) {
-  const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, provider);
   try {
+    const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, provider);
     const result = await router.getAmountsOut(amountIn, path);
     return result[result.length - 1];
   } catch {
@@ -89,28 +93,16 @@ async function reportTx(addr) {
   }
 }
 
-async function getTotalPoints(address) {
-  try {
-    const res = await fetch(`https://api.somnia.exchange/api/user/${address}`);
-    const json = await res.json();
-    if (json.success) {
-      return json.data.totalPoints || 0;
-    }
-    return 0;
-  } catch {
-    return 0;
-  }
-}
-
 async function swapSttTo(wallet, targetToken, path) {
-  const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
-  const amount = getRandom(0.01, 0.05);
-  const amountIn = ethers.parseEther(amount.toString());
-  const amountOutMin = await getAmountOut(amountIn, path);
-  const minOut = amountOutMin * 95n / 100n;
-  const deadline = Math.floor(Date.now() / 1000) + 600;
-  log(`Swapping ${amount} STT ➜ ${targetToken} for ${wallet.address.slice(0, 6)}...`, "info");
   try {
+    const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
+    const amount = getRandom(0.01, 0.05);
+    const amountIn = ethers.parseEther(amount.toString());
+    const amountOutMin = await getAmountOut(amountIn, path);
+    const minOut = amountOutMin * 95n / 100n;
+    const deadline = Math.floor(Date.now() / 1000) + 600;
+    log(`Swapping ${amount} STT ➜ ${targetToken} for ${wallet.address.slice(0, 6)}...`, "info");
+
     const tx = await router.swapExactETHForTokens(minOut, path, wallet.address, deadline, { value: amountIn });
     await tx.wait();
     log(`Swap STT ➜ ${targetToken} success!`, "success");
@@ -121,22 +113,23 @@ async function swapSttTo(wallet, targetToken, path) {
 }
 
 async function swapToStt(wallet, tokenAddr, path, rangeMin, rangeMax, symbol) {
-  const contract = new ethers.Contract(tokenAddr, ERC20_ABI, wallet);
-  const decimals = await contract.decimals();
-  const balanceRaw = await contract.balanceOf(wallet.address);
-  const amount = getRandom(rangeMin, rangeMax);
-  const amountIn = ethers.parseUnits(amount.toString(), decimals);
-  if (balanceRaw < amountIn) {
-    log(`Insufficient ${symbol} balance on ${wallet.address.slice(0, 6)}...`, "warn");
-    return;
-  }
-  await approveIfNeeded(wallet, tokenAddr, amount);
-  const amountOutMin = await getAmountOut(amountIn, path);
-  const minOut = amountOutMin * 95n / 100n;
-  const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
-  const deadline = Math.floor(Date.now() / 1000) + 600;
-  log(`Swapping ${amount} ${symbol} ➜ STT for ${wallet.address.slice(0, 6)}...`, "info");
   try {
+    const contract = new ethers.Contract(tokenAddr, ERC20_ABI, wallet);
+    const decimals = await contract.decimals();
+    const balanceRaw = await contract.balanceOf(wallet.address);
+    const amount = getRandom(rangeMin, rangeMax);
+    const amountIn = ethers.parseUnits(amount.toString(), decimals);
+    if (balanceRaw < amountIn) {
+      log(`Insufficient ${symbol} balance on ${wallet.address.slice(0, 6)}...`, "warn");
+      return;
+    }
+    await approveIfNeeded(wallet, tokenAddr, amount);
+    const amountOutMin = await getAmountOut(amountIn, path);
+    const minOut = amountOutMin * 95n / 100n;
+    const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
+    const deadline = Math.floor(Date.now() / 1000) + 600;
+    log(`Swapping ${amount} ${symbol} ➜ STT for ${wallet.address.slice(0, 6)}...`, "info");
+
     const tx = await router.swapExactTokensForETH(amountIn, minOut, path, wallet.address, deadline);
     await tx.wait();
     log(`Swap ${symbol} ➜ STT success!`, "success");
@@ -161,10 +154,6 @@ async function run() {
       await delay(getRandom(30000, 60000));
       await swapToStt(wallet, NIA_ADDRESS, [NIA_ADDRESS, WSTT_ADDRESS], 2, 10, "NIA");
       await delay(getRandom(30000, 60000));
-
-      const total = await getTotalPoints(wallet.address);
-      console.log(`\n📊 Total points from dashboard for ${entry.name} (${wallet.address}): ${total} points`);
-      console.log("────────────────────────────────────────────");
     }
   }
 }
