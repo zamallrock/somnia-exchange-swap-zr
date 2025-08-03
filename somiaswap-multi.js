@@ -26,7 +26,6 @@ const ROUTER_ABI = [
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const wallets = JSON.parse(fs.readFileSync("wallets.json"));
-const pointsPerWallet = {};
 
 function log(msg, type = "info") {
   const now = new Date().toLocaleTimeString();
@@ -83,15 +82,23 @@ async function reportTx(addr) {
     const data = await res.json();
     if (data.success) {
       const awarded = data.data.task.actualPointsAwarded;
-      const total = data.data.totalPoints;
-
-      log(`Reported: +${awarded} points → Dashboard Total: ${total}`, "success");
-
-      const lowerAddr = addr.toLowerCase();
-      pointsPerWallet[lowerAddr] = total; // Simpan dari dashboard
+      log(`Reported: +${awarded} points`, "success");
     }
   } catch (e) {
     log(`Report failed: ${e.message}`, "warn");
+  }
+}
+
+async function getTotalPoints(address) {
+  try {
+    const res = await fetch(`https://api.somnia.exchange/api/user/${address}`);
+    const json = await res.json();
+    if (json.success) {
+      return json.data.totalPoints || 0;
+    }
+    return 0;
+  } catch {
+    return 0;
   }
 }
 
@@ -155,10 +162,8 @@ async function run() {
       await swapToStt(wallet, NIA_ADDRESS, [NIA_ADDRESS, WSTT_ADDRESS], 2, 10, "NIA");
       await delay(getRandom(30000, 60000));
 
-      // Rekap poin dari dashboard
-      const addr = wallet.address.toLowerCase();
-      const total = pointsPerWallet[addr] || 0;
-      console.log(`\n📊 Total points for ${entry.name} (${addr}): ${total} points`);
+      const total = await getTotalPoints(wallet.address);
+      console.log(`\n📊 Total points from dashboard for ${entry.name} (${wallet.address}): ${total} points`);
       console.log("────────────────────────────────────────────");
     }
   }
