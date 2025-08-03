@@ -26,6 +26,7 @@ const ROUTER_ABI = [
 
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 const wallets = JSON.parse(fs.readFileSync("wallets.json"));
+const pointsPerWallet = {};
 
 function log(msg, type = "info") {
   const now = new Date().toLocaleTimeString();
@@ -82,6 +83,13 @@ async function reportTx(addr) {
     const data = await res.json();
     if (data.success) {
       log(`Reported: +${data.data.task.actualPointsAwarded} points`, "success");
+
+      // Rekap poin
+      const walletAddr = addr.toLowerCase();
+      if (!pointsPerWallet[walletAddr]) {
+        pointsPerWallet[walletAddr] = 0;
+      }
+      pointsPerWallet[walletAddr] += data.data.task.actualPointsAwarded;
     }
   } catch (e) {
     log(`Report failed: ${e.message}`, "warn");
@@ -132,6 +140,14 @@ async function swapToStt(wallet, tokenAddr, path, rangeMin, rangeMax, symbol) {
   }
 }
 
+function printTotalPoints() {
+  console.log("\n📊 Total Points Recap:");
+  for (const [wallet, points] of Object.entries(pointsPerWallet)) {
+    console.log(`→ ${wallet} : ${points} points`);
+  }
+  console.log("────────────────────────────────────────────");
+}
+
 async function run() {
   while (true) {
     for (const entry of wallets) {
@@ -148,6 +164,8 @@ async function run() {
       await swapToStt(wallet, NIA_ADDRESS, [NIA_ADDRESS, WSTT_ADDRESS], 2, 10, "NIA");
       await delay(getRandom(30000, 60000));
     }
+
+    printTotalPoints();
   }
 }
 
