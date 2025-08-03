@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import fs from "fs";
 import fetch from "node-fetch";
 
-console.log("\n✪ ZAMALLROCK | SOMNIA ECHANGE AUTO BOT ✪\n");
+console.log("\n✪ ZAMALLROCK | SOMNIA EXCHANGE AUTO BOT ✪\n");
 
 // Load config.json
 const config = JSON.parse(fs.readFileSync("config.json"));
