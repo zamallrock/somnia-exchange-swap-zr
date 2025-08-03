@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import fs from "fs";
 import fetch from "node-fetch";
 
-console.log("\n✪ ZAMALLROCK | SOMNIA EXCHANGE AUTO BOT ✪\n"); 
+console.log("\n✪ ZAMALLROCK | SOMNIA EXCHANGE AUTO BOT ✪\n");
 
 const config = JSON.parse(fs.readFileSync("config.json"));
 const RPC_URL = config.rpc;
@@ -24,7 +24,7 @@ const ROUTER_ABI = [
   "function getAmountsOut(uint amountIn, address[] path) view returns (uint[] memory)"
 ];
 
-const provider = new ethers.JsonRpcProvider(RPC_URL, { staticNetwork: null, timeout: 30000 });
+const provider = new ethers.JsonRpcProvider(RPC_URL);
 const wallets = JSON.parse(fs.readFileSync("wallets.json"));
 
 function log(msg, type = "info") {
