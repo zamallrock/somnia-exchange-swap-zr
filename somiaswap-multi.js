@@ -2,6 +2,8 @@ import { ethers } from "ethers";
 import fs from "fs";
 import fetch from "node-fetch";
 
+console.log("\n✪ ZAMALLROCK | JAINE TESTNET AUTO BOT ✪\n");
+
 // Load config.json
 const config = JSON.parse(fs.readFileSync("config.json"));
 const RPC_URL = config.rpc;
