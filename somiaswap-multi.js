@@ -54,7 +54,7 @@ async function approveIfNeeded(wallet, tokenAddr, amount) {
     if (allowance >= amountParsed) return;
     const tx = await contract.approve(ROUTER_ADDRESS, ethers.MaxUint256);
     await tx.wait();
-    log(`Approved token ${tokenAddr.slice(0,6)}... for ${wallet.address.slice(0,6)}...`, "success");
+    log(`Approved ${tokenAddr.slice(0,6)}... for ${wallet.address.slice(0,6)}...`, "success");
   } catch (e) {
     log(`Approval failed: ${e.message}`, "error");
   }
@@ -98,10 +98,22 @@ async function swapSttTo(wallet, targetToken, path) {
     const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
     const amount = getRandom(0.01, 0.05);
     const amountIn = ethers.parseEther(amount.toString());
+
+    const nativeBalance = await provider.getBalance(wallet.address);
+    if (nativeBalance < amountIn) {
+      log(`Insufficient STT balance on ${wallet.address.slice(0, 6)}...`, "warn");
+      return;
+    }
+
     const amountOutMin = await getAmountOut(amountIn, path);
     const minOut = amountOutMin * 95n / 100n;
+    if (minOut <= 0n) {
+      log(`Estimation failed: ${targetToken}`, "warn");
+      return;
+    }
+
     const deadline = Math.floor(Date.now() / 1000) + 600;
-    log(`Swapping ${amount} STT ➜ ${targetToken} for ${wallet.address.slice(0, 6)}...`, "info");
+    log(`Swapping ${amount} STT ➜ ${targetToken} for ${wallet.address.slice(0,6)}...`, "info");
 
     const tx = await router.swapExactETHForTokens(minOut, path, wallet.address, deadline, { value: amountIn });
     await tx.wait();
@@ -119,16 +131,24 @@ async function swapToStt(wallet, tokenAddr, path, rangeMin, rangeMax, symbol) {
     const balanceRaw = await contract.balanceOf(wallet.address);
     const amount = getRandom(rangeMin, rangeMax);
     const amountIn = ethers.parseUnits(amount.toString(), decimals);
+
     if (balanceRaw < amountIn) {
       log(`Insufficient ${symbol} balance on ${wallet.address.slice(0, 6)}...`, "warn");
       return;
     }
+
     await approveIfNeeded(wallet, tokenAddr, amount);
+
     const amountOutMin = await getAmountOut(amountIn, path);
     const minOut = amountOutMin * 95n / 100n;
+    if (minOut <= 0n) {
+      log(`Estimation failed: ${symbol} ➜ STT`, "warn");
+      return;
+    }
+
     const router = new ethers.Contract(ROUTER_ADDRESS, ROUTER_ABI, wallet);
     const deadline = Math.floor(Date.now() / 1000) + 600;
-    log(`Swapping ${amount} ${symbol} ➜ STT for ${wallet.address.slice(0, 6)}...`, "info");
+    log(`Swapping ${amount} ${symbol} ➜ STT for ${wallet.address.slice(0,6)}...`, "info");
 
     const tx = await router.swapExactTokensForETH(amountIn, minOut, path, wallet.address, deadline);
     await tx.wait();
